@@ -4,6 +4,20 @@
 
 typedef double Vector2D[2];
 
+double *reescalar_distancias(double *r, int cuerpos){
+    if(r == NULL || cuerpos <= 0){
+        return NULL;
+    }
+    const double C = 1.496E11;
+    
+    for (int i = 0; i < cuerpos; i++)
+    {
+        r[i] = r[i] / C;
+    }
+    
+    return r;
+}
+
 Vector2D *reescalar_posiciones(Vector2D *posiciones, int cuerpos){
     if (posiciones == NULL || cuerpos <= 0) {
         return NULL;
@@ -43,6 +57,20 @@ double *reescalar_masas(double *masas, int size){
     }
     
     return masas;
+}
+
+double *reescalar_distancias_inv(double *r, int cuerpos){
+    if(r == NULL || cuerpos <= 0){
+        return NULL;
+    }
+    const double C = 1.496E11;
+    
+    for (int i = 0; i < cuerpos; i++)
+    {
+        r[i] = r[i] * C;
+    }
+    
+    return r;
 }
 
 Vector2D *reescalar_posiciones_inv(Vector2D *posiciones, int cuerpos){

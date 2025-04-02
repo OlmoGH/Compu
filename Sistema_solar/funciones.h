@@ -4,11 +4,15 @@
 //Declaración de funciones
 typedef double Vector2D[2];
 
-Vector2D *reescalar_posiciones_inv(Vector2D *posiciones, int cuerpos);
+double *reescalar_distancias(double *r, int cuerpos);
+
+Vector2D *reescalar_posiciones(Vector2D *posiciones, int cuerpos);
 
 double reescalar_tiempo(double tiempo);
 
 double *reescalar_masas(double *masas, int size);
+
+double *reescalar_distancias_inv(double *r, int cuerpos);
 
 Vector2D *reescalar_posiciones_inv(Vector2D *posiciones, int cuerpos);
 
