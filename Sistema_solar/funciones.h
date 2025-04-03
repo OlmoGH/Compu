@@ -4,6 +4,8 @@
 //Declaración de funciones
 typedef double Vector2D[2];
 
+double norma_cuad(Vector2D posicion);
+
 double *reescalar_distancias(double *r, int cuerpos);
 
 Vector2D *reescalar_posiciones(Vector2D *posiciones, int cuerpos);

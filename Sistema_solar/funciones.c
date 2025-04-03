@@ -4,6 +4,11 @@
 
 typedef double Vector2D[2];
 
+double norma_cuad(Vector2D posicion){
+    double d = posicion[0] * posicion[0] + posicion[1] * posicion[1];
+    return d;
+}
+
 double *reescalar_distancias(double *r, int cuerpos){
     if(r == NULL || cuerpos <= 0){
         return NULL;
