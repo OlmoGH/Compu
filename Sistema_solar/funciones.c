@@ -1,5 +1,6 @@
 # include "funciones.h"
 # include <stdlib.h>
+# include <stdio.h>
 # include <math.h>
 
 typedef double Vector2D[2];
