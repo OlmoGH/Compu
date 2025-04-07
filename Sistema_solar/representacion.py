@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-cuerpos = 6
+cuerpos = 9
 datos = {}
 
 # Leer los archivos de datos
@@ -27,7 +27,7 @@ plt.gca().set_aspect('equal')  # Para que no se distorsione la órbita
 plt.legend()
 
 # Ajuste de los límites (automático o manual)
-#plt.xlim([-2, 2])
+#plt.xlim([-2.5, 1.5])
 #plt.ylim([-2, 2])
 
 plt.show()
