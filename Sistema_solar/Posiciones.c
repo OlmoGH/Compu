@@ -11,7 +11,7 @@
 
 typedef double Vector2D[2];
 int main(){
-    double paso = 0.001;
+    double paso = 0.01;
     int iteraciones = 100000;
 
     //Guardamos espacio en memoria para las masas, las posiciones, velocidades y aceleraciones
@@ -21,7 +21,7 @@ int main(){
     Vector2D *velocidades = (Vector2D *) malloc(CUERPOS * 2 * sizeof(double));
     Vector2D *aceleraciones = (Vector2D *) malloc(CUERPOS * 2 * sizeof(double));
 
-    //Definimos las posiciones iniciales y las excentricidades de las órbitas
+    //Definimos las posiciones iniciales (afelios) y las excentricidades de las órbitas
     double excentricidades[] = {0, 0.205630690, 0.0068, 0.01671, 0.0934, 0.0484, 0.0542, 0.0444, 0.00859, 0.25};
     Vector2D posiciones_iniciales[] = {{0, 0}, {0.69817445E11, 0}, {1.08942780E11, 0}, {1.52098233E11, 0}, {2.49232432E11, 0}, {8.16001807E11, 0}, {15.03509229E11, 0}, {30.06318143E11, 0}, {45.37039826E11, 0}, {73.76124302E11, 0}};
     Vector2D velocidades_iniciales[CUERPOS];
@@ -42,7 +42,7 @@ int main(){
     for (int i = 1; i < CUERPOS; i++)
     {
         velocidades_iniciales[i][0] =  0;
-        velocidades_iniciales[i][1] = sqrt(masas[0] * (1 + excentricidades[i]) / (1 - excentricidades[i]) / posiciones_iniciales[i][0]);
+        velocidades_iniciales[i][1] = sqrt(masas[0] * (1 - excentricidades[i]) / (1 + excentricidades[i]) / posiciones_iniciales[i][0]);
     }
     
     //Inicializamos las posiciones de los planetas en el instante 0 como posiciones_iniciales
@@ -89,7 +89,7 @@ int main(){
     char filename[20];
     for (int i = 0; i < CUERPOS; i++)
     {
-        sprintf(filename, "cuerpo_%d.txt", i);
+        sprintf(filename, "Datos_cuerpos/cuerpo_%d.txt", i);
         archivos[i] = fopen(filename, "w");
         if (archivos[i] == NULL)
         {

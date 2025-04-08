@@ -1,34 +1,70 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 import pandas as pd
+import os
 
+# Número de cuerpos (incluyendo el Sol)
 cuerpos = 10
 datos = {}
 
 # Leer los archivos de datos
 for i in range(cuerpos):
-    file_name = f"cuerpo_{i}.txt"
-    datos[i] = pd.read_csv(file_name, delimiter='\t')
+    file_name = f"Datos_cuerpos/cuerpo_{i}.txt"
+    if os.path.exists(file_name):
+        datos[i] = pd.read_csv(file_name, delimiter='\t', header=0, names=['x', 'y'])
+    else:
+        print(f"Archivo no encontrado: {file_name}")
+        datos[i] = pd.DataFrame({'x': [0], 'y': [0]})  # Valor de emergencia
 
-# Configurar la figura
-plt.figure(figsize=(8, 8))
-for i in range(1, cuerpos):  # Omitimos el Sol si está en el origen
-    plt.plot(datos[i]["POSICION_X"], datos[i]["POSICION_Y"], label=f'Cuerpo {i}')
+# Nombres de los cuerpos
+nombres = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte',
+            'Júpiter', 'Saturno', 'Urano', 'Neptuno', 'Plutón']
 
-# Añadimos el Sol en el origen
-plt.plot(0, 0, 'yo', label='Sol')
+# Crear la figura
+fig, ax = plt.subplots(figsize=(8, 8))
 
-# Mejoras visuales
-plt.xlabel("x (UA)")
-plt.ylabel("y (UA)")
-plt.title("Órbitas de los planetas")
-plt.grid(True)
-plt.gca().set_aspect('equal')  # Para que no se distorsione la órbita
-plt.legend()
+# Configurar límites y proporciones
+ax.set_xlim(-50, 50)
+ax.set_ylim(-50, 50)
+ax.set_aspect('equal')
+ax.set_xlabel("x (UA)")
+ax.set_ylabel("y (UA)")
+ax.set_title("Órbitas de los planetas")
+ax.grid(True)
 
-# Ajuste de los límites (automático o manual)
-#plt.xlim([-2.5, 1.5])
-#plt.ylim([-2, 2])
+# Crear puntos (círculos) para cada planeta
+trayectorias = []
+planetas = []
+for i in range(cuerpos):
+    (planeta,) = ax.plot([], [], 'o', label=nombres[i])
+    planetas.append(planeta)
+    (trayectoria,) = ax.plot([], [], '-')
+    trayectorias.append(trayectoria)
 
+
+# Añadir leyenda
+ax.legend(loc='upper right')
+
+# Función de inicialización
+def init():
+    for planeta, trayectoria in zip(planetas, trayectorias):
+        planeta.set_data([], [])
+        trayectoria.set_data([], [])
+    return trayectorias + planetas
+
+# Función de actualización
+def update(frame):
+    for i in range(cuerpos):
+        x = datos[i].x[frame]
+        y = datos[i].y[frame]
+        planetas[i].set_data([x], [y])  # Usamos listas para que funcione
+        trayectorias[i].set_data(datos[i].x[:frame], datos[i].y[:frame])
+    return planetas + trayectorias
+
+# Crear animación
+frames = len(datos[0])
+anim = FuncAnimation(fig, update, init_func=init, frames=frames, blit=True, interval=0)
+
+# Mostrar animación
 plt.show()
-
