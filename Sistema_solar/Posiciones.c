@@ -7,12 +7,12 @@
 # define G 6.6743E-11
 # define Ms 1.989E30
 # define UA 1.496E11
-# define CUERPOS 9 //Cuantos cuerpos estamos tomando
+# define CUERPOS 10 //Cuantos cuerpos estamos tomando
 
 typedef double Vector2D[2];
 int main(){
     double paso = 0.001;
-    int iteraciones = 10000000;
+    int iteraciones = 100000;
 
     //Guardamos espacio en memoria para las masas, las posiciones, velocidades y aceleraciones
     double vector_masas[] = {1.989E30, 3.303E23, 4.869E24, 5.972E24, 0.642E24, 1898E24, 568E24, 86.8E24, 102.43E24, 1.303E22};

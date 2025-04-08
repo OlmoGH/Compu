@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-cuerpos = 9
+cuerpos = 10
 datos = {}
 
 # Leer los archivos de datos
