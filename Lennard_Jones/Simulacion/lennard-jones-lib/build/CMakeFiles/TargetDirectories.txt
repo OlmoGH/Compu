@@ -1,0 +1,7 @@
+C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib/build/CMakeFiles/lennardjones.dir
+C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib/build/CMakeFiles/edit_cache.dir
+C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib/build/CMakeFiles/rebuild_cache.dir
+C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib/build/CMakeFiles/list_install_components.dir
+C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib/build/CMakeFiles/install.dir
+C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib/build/CMakeFiles/install/local.dir
+C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib/build/CMakeFiles/install/strip.dir

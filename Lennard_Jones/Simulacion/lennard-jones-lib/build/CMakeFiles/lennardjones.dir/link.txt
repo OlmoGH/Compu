@@ -1,0 +1,2 @@
+C:\ProgramData\mingw64\mingw64\bin\ar.exe qc liblennardjones.a CMakeFiles/lennardjones.dir/src/Archivo.cpp.obj CMakeFiles/lennardjones.dir/src/Particula.cpp.obj CMakeFiles/lennardjones.dir/src/Simulador.cpp.obj
+C:\ProgramData\mingw64\mingw64\bin\ranlib.exe liblennardjones.a

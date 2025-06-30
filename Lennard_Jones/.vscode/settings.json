@@ -53,5 +53,6 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/olmov/Desktop/compu/Compu/Lennard_Jones/Simulacion/lennard-jones-lib"
 }
