@@ -5,6 +5,13 @@
 # include <array>
 # include "Particula.h"
 # include "Archivo.h"
+# include <omp.h>
+
+/**
+ * @brief Modos de inicialización del sistema
+ * 
+ */
+enum class Modo {Azar, Cuadricula, CuadriculaAzar, Panal};
 
 ///*Clase Simulador*///
 class Simulador
@@ -27,12 +34,12 @@ public:
     Archivo energias;
     Archivo var_posicion;
     Archivo separacion;
-    Simulador(const int N_, const int iteraciones_, const double paso_, const double L_, double v_max_, bool guardar_datos);
+    Simulador(const int N_, const int iteraciones_, const double paso_, const double L_, double v_max_, bool guardar_datos, int n_threads);
     ~Simulador();
-    void inicializar();
-    void aplicar_Verlet();
+    void inicializar(Modo modo);
+    void aplicar_Verlet(int n);
     double calcular_var_posicion();
-    double calcular_separacion();
+    double calcular_separacion(int id_1, int id_2);
     std::vector<std::array<double, 2>> calcular_aceleraciones() const;
     void calcular_energia_cinetica(int n);
     void calcular_energia_potencial(int n);

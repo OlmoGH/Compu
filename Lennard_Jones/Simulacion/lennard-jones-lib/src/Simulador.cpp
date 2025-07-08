@@ -1,4 +1,4 @@
-# include "Simulador.h"
+# include "../include/Simulador.h"
 # include "Particula.h"
 # include "Archivo.h"
 # include <vector>
@@ -11,8 +11,18 @@
 #define PI 3.1415926535897932
 
 using namespace std;
-
-Simulador::Simulador(const int N_, const int iteraciones_, const double paso_, const double L_, double v_max_, bool guardar_datos) : 
+/**
+ * @brief Construct a new Simulador:: Simulador object
+ * 
+ * @param N_ Número de partículas
+ * @param iteraciones_ Número de pasos del programa
+ * @param paso_ Paso de tiempo entre dos pasos del programa
+ * @param L_ Tamaño de la caja
+ * @param v_max_ Módulo de la velocidad de las partículas
+ * @param guardar_datos Elección si se quieren escribir los datos del sistema, velocidad y posición, en archivos
+ * @param n_threads Número de hilos para la paralelización
+ */
+Simulador::Simulador(const int N_, const int iteraciones_, const double paso_, const double L_, double v_max_, bool guardar_datos, int n_threads) : 
 N(N_), 
 iteraciones(iteraciones_), 
 paso(paso_), 
@@ -32,6 +42,9 @@ energias("Datos/Energias/Energias_" + to_string(N) + "_" + to_string(iteraciones
 var_posicion("Datos/Variacion_posicion/Var_posicion_" + to_string(N_) + "_" + to_string(iteraciones_) + "_" + to_string((int)L_) + ".csv", guardar_datos),
 separacion("Datos/Variacion_posicion/Separacion_" + to_string(N_) + "_" + to_string(iteraciones_) + "_" + to_string((int)L_) + ".csv", guardar_datos)
 {   
+    // Elegimos el número de threads de la simulación
+    omp_set_num_threads(n_threads);
+    
     string cabecera_datos, cabecera_velocidades;
 
     // Escribimos la cabecera del archivo de velocidades y posiciones
@@ -65,38 +78,64 @@ Simulador::~Simulador()
 {
 }
 
-void Simulador::inicializar()
+
+/**
+ * @brief Inicializa el sistema con una configuración concreta
+ * @param Modo Configuración en la que se inicializa el sistema
+ * - Modo::Azar
+ * - Modo::Cuadricula
+ * - Modo::CuadriculaAzar
+ * - Modo::Panal
+ */
+void Simulador::inicializar(Modo modo)
 {
+    double x, y;
     #pragma omp parallel
     {
         // Generador de números aleatorios por hilo (thread-safe)
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis_ang(0.0, 2 * PI);
+        std::uniform_real_distribution<> dis_pos(0.0, 1.0);
 
         #pragma omp for
         for (size_t i = 0; i < particulas.size(); i++)
         {
             double randnum = dis_ang(gen);
+            double posx = dis_pos(gen);
+            double posy = dis_pos(gen);
 
-            // Inicio al azar
-            // double x = ((double) rand() / RAND_MAX) * L;
-            // double y = ((double) rand() / RAND_MAX) * L;
+            switch (modo)
+            {
+            case Modo::Azar:
+                x = ((double) rand() / RAND_MAX) * L;
+                y = ((double) rand() / RAND_MAX) * L;
+                break;
 
-            // Inicio dentro de cuadriculas en una posicion al azar 
-            //posicion_inicial[i][0].set_xy(L / sqrt(N) * (posx + i % ((int) sqrt(N))), L / sqrt(N) * (posy + i / (int) sqrt(N)));
+            case Modo::Cuadricula:
+                x = L / sqrt(N) * (0.5 + i % (int)sqrt(N));
+                y = L / sqrt(N) * (0.5 + i / (int)sqrt(N));
+                break;
 
-            // Inicio cuadriculado
-            double x = L / sqrt(N) * (0.5 + i % (int)sqrt(N));
-            double y = L / sqrt(N) * (0.5 + i / (int)sqrt(N));
+            case Modo::CuadriculaAzar:
+                x = L / sqrt(N) * (posx + i % (int)sqrt(N));
+                y = L / sqrt(N) * (posy + i / (int)sqrt(N));
+                break;
 
-            // Inicio en panal
-            //posicion_inicial[i].set_xy(L / sqrt(N) * (0.5 + i % ((int) sqrt(N))), L / sqrt(N) * (0.5 + i / (int) sqrt(N)));
-            //if (i % (2 * (int)L) > (int)L)
-            //posicion_inicial[i].set_xy(L / sqrt(N) * (1 + i % ((int) sqrt(N))), L / sqrt(N) * (1 + i / (int) sqrt(N)));
+            case Modo::Panal:
+                x = L / sqrt(N) * (0.5 + i % (int)sqrt(N));
+                y = L / sqrt(N) * (0.5 + i / (int)sqrt(N));
+                if (i % (2 * (int)L) > (int)L)
+                {
+                    x += L / sqrt(N) * 0.5;
+                    y += L / sqrt(N) * 0.5;
+                }
+                break;
 
-            // Velocidades radiales
-            //posicion_inicial[i].set_vxvy(2 * (particulas[i].get_xy()[0] - L/2), 2 * (particulas[i].get_xy()[1] - L/2));
+            default:
+                break;
+            }
+
 
             // Velocidades aleatorias
             double vx = v_max * cos(randnum);
@@ -111,17 +150,18 @@ void Simulador::inicializar()
     
 }
 
-void Simulador::aplicar_Verlet()
+void Simulador::aplicar_Verlet(int n)
 {
-    #pragma omp parallel
-    {
-        // Calculamos la aceleración de todas las partículas
-        #pragma omp single
-        aceleraciones = calcular_aceleraciones();
+        // Calculamos la aceleración de todas las partículas para la iteracion inicial
+        if (n == 1)
+        {
+            aceleraciones = calcular_aceleraciones();
+        }
+
         double presion_por_paso = 0.0;
 
         // Actualizamos las posiciones de todas las partículas usando la imagen mínima y calculamos la presión
-        #pragma omp for reduction(+:presion_por_paso)
+        #pragma omp parallel for reduction(+:presion_por_paso)
         for (size_t i = 0; i < N; i++)
         {
             particulas[i].actualizar_posicion(aceleraciones[i], paso);
@@ -137,7 +177,6 @@ void Simulador::aplicar_Verlet()
         presion += presion_por_paso;
 
         // Calculamos las nuevas aceleraciones de las partículas
-        #pragma omp single
         nuevas_aceleraciones = calcular_aceleraciones();
 
         // Calculamos las nuevas velocidades de las partículas
@@ -146,7 +185,9 @@ void Simulador::aplicar_Verlet()
         {
             particulas[i].actualizar_velocidad(aceleraciones[i], nuevas_aceleraciones[i], paso);
         }
-    }
+
+        // Sobreescribimos las aceleraciones con las nuevas calculadas
+        aceleraciones = nuevas_aceleraciones;
 
 }
 
@@ -178,36 +219,14 @@ double Simulador::calcular_var_posicion()
     return variacion_media;
 }
 
-double Simulador::calcular_separacion()
+double Simulador::calcular_separacion(int id_1, int id_2)
 {
     double separacion = 0.0;
-    // #pragma omp parallel for reduction(+:separacion)
-    // for (size_t i = 0; i < particulas.size(); i++)
-    // {
-    //     for (size_t j = i+1; j < particulas.size(); j++)
-    //     {
-    //         double xi = particulas[i].x;
-    //         double yi = particulas[i].y;
-    //         double xj = particulas[j].x;
-    //         double yj = particulas[j].y;
-    //         double dx = xi - xj;
-    //         double dy = yi - yj;
 
-    //         // Aplicar condición de mínima imagen
-    //         if (dx >  0.5 * L) dx -= L;
-    //         if (dx < -0.5 * L) dx += L;        
-    //         if (dy >  0.5 * L) dy -= L;
-    //         if (dy < -0.5 * L) dy += L;
-            
-    //         separacion += dx * dx + dy * dy;
-    //     }
-        
-    // }
-
-            double xi = particulas[N / 2].x;
-            double yi = particulas[N / 2].y;
-            double xj = particulas[N / 2 + 1].x;
-            double yj = particulas[N / 2 + 1].y;
+            double xi = particulas[id_1].x;
+            double yi = particulas[id_1].y;
+            double xj = particulas[id_2].x;
+            double yj = particulas[id_2].y;
             double dx = xi - xj;
             double dy = yi - yj;
 
@@ -239,21 +258,31 @@ vector<array<double, 2>> Simulador::calcular_aceleraciones() const{
             {
                 auto rj = particulas[j].get_xy();
                 array<double, 2> rij = {ri[0] - rj[0], ri[1] - rj[1]};
+
                 // aplicar condición de mínima imagen
-                for (size_t a = 0; a < 2; ++a) {
-                    if (rij[a] >  0.5 * L) rij[a] -= L;
-                    if (rij[a] < -0.5 * L) rij[a] += L;
-                }
+                    for (size_t a = 0; a < 2; ++a) {
+                        if (rij[a] >  0.5 * L) rij[a] -= L;
+                        if (rij[a] < -0.5 * L) rij[a] += L;
+                    }
+
                 double rij2 = rij[0] * rij[0] + rij[1] * rij[1];
-                double rij4 = rij2 * rij2;
-                double rij8 = rij4 * rij4;
-                double rij14 = rij8 * rij4 * rij2;
-                double fuerza = 48 / rij14 - 24 / rij8;
-                for (int a = 0; a < 2; ++a) 
+
+                // Comprobamos si la distancia entre partículas es pequeña
+                // Si r^2 < 6.0 se calcula la aceleración
+                // Si r^2 > 6.0 no se suma nada
+                if (rij2 < 6.0)
                 {
-                    aceleraciones[i][a] += fuerza * rij[a];
-                    aceleraciones[j][a] -= fuerza * rij[a];
+                    double rij4 = rij2 * rij2;
+                    double rij8 = rij4 * rij4;
+                    double rij14 = rij8 * rij4 * rij2;
+                    double fuerza = 48 / rij14 - 24 / rij8;
+                    for (int a = 0; a < 2; ++a) 
+                    {
+                        aceleraciones[i][a] += fuerza * rij[a];
+                        aceleraciones[j][a] -= fuerza * rij[a];
+                    }
                 }
+                
             }
         }
         

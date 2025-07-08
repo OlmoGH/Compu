@@ -7,7 +7,7 @@ parametros_simulacion = np.loadtxt("C:/Users/olmov/Desktop/compu/Compu/Lennard_J
 N = int(parametros_simulacion[0])
 L = int(parametros_simulacion[1])
 pasos = int(parametros_simulacion[2])
-skip = 100
+skip = 10
 
 inicio = 0
 
