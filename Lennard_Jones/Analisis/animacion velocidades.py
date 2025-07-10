@@ -4,11 +4,12 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Circle
 
 # === Parámetros de simulación ===
-factor = 10
-N, L, pasos, mod_v = np.loadtxt("../Simulacion/Datos/Parametros.txt", usecols=1, converters=float, dtype=int)
+inicio = 25000
+skip = 100
+N, Lx, Ly, pasos, mod_v = np.loadtxt("../Simulacion/Datos/Parametros.txt", usecols=1, converters=float, dtype=int)
 
-archivo_vel = f"../Simulacion/Datos/Velocidades/Velocidades_{N}_{pasos}_{L}.csv"
-archivo_pos = f"../Simulacion/Datos/Posiciones/Lennard_Jones_{N}_{pasos}_{L}.csv"
+archivo_vel = f"../Simulacion/Datos/Velocidades/Velocidades_{N}_{pasos}_{Lx}_{mod_v}_0.csv"
+archivo_pos = f"../Simulacion/Datos/Posiciones/Lennard_Jones_{N}_{pasos}_{Lx}_{mod_v}.csv"
 
 # === Cargar datos ===
 datos_vel = np.genfromtxt(archivo_vel, delimiter=',', skip_header=1)
@@ -24,12 +25,15 @@ v_cuadrado = vx**2 + vy**2
 velocidades = np.sqrt(v_cuadrado)
 
 ## Posición
-x = datos_pos[:, 0::2]
-y = datos_pos[:, 1::2]
+x = datos_pos[inicio::skip, 0::2]
+y = datos_pos[inicio::skip, 1::2]
 
 # ================
 d = 2  # sistema 2D
-T = np.mean(v_cuadrado) / d
+
+T = np.mean(v_cuadrado[pasos//2:]) / d
+print(len(v_cuadrado))
+
 
 print(f"|v| = {mod_v}")
 print(f"T = {T:.3f}")
@@ -60,17 +64,17 @@ particulas = plt.scatter([], [], c='b')
 
 # Configurar ejes
 ax_v.grid(True)
-ax_anim.set_xlim([0, L])
-ax_anim.set_ylim([0, L])
+ax_anim.set_xlim([0, Lx])
+ax_anim.set_ylim([0, Ly])
 ax_v.set_xlim(0, bins_edges.max())
-ax_v.set_ylim(0, 0.125)  # FIJAR LÍMITE DEL EJE Y
+ax_v.set_ylim(0, max_teorico * 1.1)  # FIJAR LÍMITE DEL EJE Y
 
 # Graficar curva teórica (después de establecer límites)
 ax_v.plot(v_lin, dist_teorica, 'r-', label='Maxwell-Boltzmann')
 
 ax_v.set_xlabel("Módulo de la velocidad")
 ax_v.set_ylabel("Densidad de probabilidad")
-fig.suptitle(f"Histograma y distrubución de velocidades junto a la simulación")
+fig.suptitle(f"Histograma y distrubución de velocidades con T = {T:.3f} junto a la simulación para {N} partículas")
 ax_v.legend()
 
 def init():
@@ -83,16 +87,16 @@ def init():
 
 def update(frame):
     # Usar histogramas precalculados
-    alturas, _ = np.histogram(velocidades[frame:frame+30, :].ravel(), bins=bins_edges, density=True)
+    alturas, _ = np.histogram(velocidades[inicio + frame * skip:inicio + frame*skip+30*skip:skip, :].ravel(), bins=bins_edges, density=True)
     for i, bar in enumerate(histograma):
         bar.set_height(alturas[i])
 
     posiciones = np.column_stack((x[frame], y[frame]))
     particulas.set_offsets(posiciones)
-    print(f"Animando frame {frame} de {pasos}")
+    print(f"Animando frame {frame} de {len(x)}")
     return [particulas] + histograma
 
-animacion = FuncAnimation(fig=fig, func=update, frames=range(pasos), 
+animacion = FuncAnimation(fig=fig, func=update, frames=len(x), 
                          init_func=init, blit=True, interval=20)
 plt.show()
-animacion.save(f"../Animaciones y graficas/Animacion velocidades {N} partículas y {pasos} pasos.mp4", writer='ffmpeg')
+# animacion.save(f"../Animaciones y graficas/Animacion velocidades inicio quieto.mp4", writer='ffmpeg')

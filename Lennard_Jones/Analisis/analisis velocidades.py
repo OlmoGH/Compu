@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import maxwell
 
 # === Parámetros de simulación ===
 N, L, pasos, mod_v = np.loadtxt("../Simulacion/Datos/Parametros.txt", usecols=1, dtype=int, converters=float)
 
-archivo_vel = f"../Simulacion/Datos/Velocidades/Velocidades_{N}_{pasos}_{L}.csv"
+archivo_vel = f"../Simulacion/Datos/Velocidades/Velocidades_{N}_{pasos}_{L}_{mod_v}.csv"
 
 # === Cargar datos ===
 datos_vel = np.genfromtxt(archivo_vel, delimiter=',', skip_header=1)
@@ -33,6 +32,13 @@ T = np.mean(v_cuadrado) / d
 print(f"|v| = {mod_v}")
 print(f"T = {T:.3f}")
 
+# === Distribuciones teóricas ===
+v_lin = np.linspace(0, v_flat.max(), 500)
+vx_lin = np.linspace(vx_flat.min(), vx_flat.max(), 500)
+
+dist_v = v_lin / T * np.exp(-v_lin ** 2 / (2 * T))
+dist_vx = 1 / np.sqrt(2 * np.pi * T) * np.exp(-(vx_lin) ** 2 / (2 * T))
+
 # === Gráfica ===
 fig, (ax_v, ax_vx) = plt.subplots(ncols=2, figsize=(10, 5))
 ax_v.grid(True)
@@ -41,10 +47,9 @@ ax_vx.grid(True)
 ax_v.hist(v_flat, bins=100, color='skyblue', edgecolor='black', density=True, label='Histograma v')
 ax_vx.hist(vx_flat, bins=100, color='teal', edgecolor='black', density=True, label=r'Histograma $v_x$')
 
-v_lin = np.linspace(0, v_flat.max(), 500)
-vx_lin = np.linspace(vx_flat.min(), vx_flat.max(), 500)
-ax_v.plot(v_lin, v_lin / T * np.exp(-v_lin ** 2 / (2 * T)), 'r-', label='Maxwell-Boltzmann')
-ax_vx.plot(vx_lin, 1 / np.sqrt(2 * np.pi * T) * np.exp(-vx_lin ** 2 / (2 * T)), 'r-', label='Gauss')
+
+ax_v.plot(v_lin, dist_v, 'r-', label='Maxwell-Boltzmann')
+ax_vx.plot(vx_lin, dist_vx, 'r-', label='Gauss')
 
 ax_v.set_xlabel("Módulo de la velocidad")
 ax_vx.set_xlabel("Velocidad horizontal")
