@@ -272,52 +272,59 @@ public:
         archivo <<  endl;
     }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    ofstream archivo("Estados.txt");
-    if (!archivo) {
-        cout << "No se pudo abrir el archivo Estados.txt\n";
-        return 1;
-    }
     
-    int N = 1000;
-    int n_ciclos = N / 10;
-    double lambda = 0.8;
-    double L = 1;
-    double sigma = L / 16;
-    double mu = L / 4;
-    double s = L * L / (8 * PI * N * n_ciclos);
-    int pasos = 2000;
-    int inicio = 4 * N / 5;
-    int ancho = N / 5;
-
-        for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "-N" && i + 1 < argc) {
-            N = std::stoi(argv[++i]);
-        }
-        else if ((arg == "-steps" || arg == "-s") && i + 1 < argc) {
-            pasos = std::stoi(argv[++i]);
-        }
-    }
-
-    Simulacion simulacion(N, n_ciclos, lambda, L, sigma, mu, s, pasos);
-
-    simulacion.IniciarFuncion();
-    simulacion.CalcularV(2 * N / 5, N / 5);
-
-    simulacion.CalcularAlpha();
-    for (int n = 0; n < pasos; n++)
+    int optim_level = stoi(argv[1]);
+    ofstream ofile("resultados_portatil.txt");
+    ofile << "O" << optim_level << endl;
+    ofile << 'N' << '\t' << 'pasos' << '\t' << 'tiempo' << endl;
+    
+    for (int pasos = 1000; pasos < 1000001; pasos *= 10)
     {
-        simulacion.CalcularBeta();
-        simulacion.AplicarPaso();
-        // simulacion.CalcularNormaDerecha(n, inicio, ancho);
-        simulacion.CalcularNorma();
-        simulacion.ExportarDatos(archivo);
-    }
-    
-    archivo.close();
+        for (int N_hilos = 1; N_hilos < 9; N_hilos *= 2)
+        {    
+            for (int N = 1000; N < 1000001; N *= 10)
+            {
+                    double inicio = omp_get_wtime();
 
+                    ofstream archivo("Estados.txt");
+                    if (!archivo) {
+                        cout << "No se pudo abrir el archivo Estados.txt\n";
+                        return 1;
+                    }
+                    
+                    int n_ciclos = N / 10;
+                    double lambda = 0.8;
+                    double L = 1;
+                    double sigma = L / 16;
+                    double mu = L / 4;
+                    double s = L * L / (8 * PI * N * n_ciclos);
+                    int inicio = 4 * N / 5;
+                    int ancho = N / 5;
+
+                    Simulacion simulacion(N, n_ciclos, lambda, L, sigma, mu, s, pasos);
+
+                    simulacion.IniciarFuncion();
+                    simulacion.CalcularV(2 * N / 5, N / 5);
+
+                    simulacion.CalcularAlpha();
+                    for (int n = 0; n < pasos; n++)
+                    {
+                        simulacion.CalcularBeta();
+                        simulacion.AplicarPaso();
+                        // simulacion.CalcularNormaDerecha(n, inicio, ancho);
+                        simulacion.CalcularNorma();
+                        simulacion.ExportarDatos(archivo);
+                    }
+                    
+                    archivo.close();
+
+                    double fin = omp_get_wtime();
+               ofile << N << '\t' << pasos << '\t' << fin - inicio << endl;
+            }
+        }
+    }
 
     // Archivo con los datos de la simulación empleados para crear la animación
     // ofstream output("datos.txt");
